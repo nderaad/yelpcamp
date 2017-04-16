@@ -9,7 +9,7 @@ app.set('view engine', 'ejs');//sets template engine to ejs enabling ejs
 
 var cgrounds = [
   {name: 'Salmon Creek', image: 'https://farm9.staticflickr.com/8422/7842069486_c61e4c6025.jpg'},
-  {name:'Granite Hill'}, {image: 'https://farm9.staticflickr.com/8311/7930038740_d86bd62a7e.jpg'},
+  {name:'Granite Hill', image: 'https://farm9.staticflickr.com/8311/7930038740_d86bd62a7e.jpg'},
   {name: 'Mountain Goats Rest', image: 'http://www.photosforclass.com/download/7360193870'}
 ];
 
@@ -18,8 +18,12 @@ app.get('/', function(req,res){
 });
 
 app.get('/campgrounds', function(req,res){
-  res.render('campgrounds');
+  res.render('campgrounds', {campgrounds: cgrounds});
 });
+
+app.get('*',function(req,res){
+  res.send("Opps this page does not exist?");
+})
 
 app.listen(3000, function(){
   console.log("YelpCamp server is listening on Port 3000")
