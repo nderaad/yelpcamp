@@ -1,13 +1,18 @@
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-var mongoose = require('mongoose');
+var express        = require('express');
+var app            = express();
+var bodyParser     = require('body-parser');
+var mongoose       = require('mongoose');
 //--using bluebird promises installed instead of native ES6 for 4X speed
-mongoose.Promise = require('bluebird');
+mongoose.Promise   = require('bluebird');
 //--establishing connection with config Folder that
 //--has credentials and location of MongoD
-var config = require('./config');
+var config         = require('./config');
+var CampMod        = require('./models/new_camp');
 
+
+//-------------------------------------------------------//
+// USE SECTION
+//-------------------------------------------------------//
 
 app.use(bodyParser.urlencoded({extended: true}));//allows app to parse body of http requests (e.g. GET, POST, etc.)
 app.use(express.static('public')); //tells express to serve up public folder for accessing static files
@@ -16,41 +21,73 @@ app.set('view engine', 'ejs');//sets template engine to ejs enabling ejs
 //--establish connection with MondgoDB using config requirement above
 mongoose.connect(config.getDbConnectionString());
 
-var cgrounds = [
-  {name: 'Salmon Creek', image: 'https://farm9.staticflickr.com/8422/7842069486_c61e4c6025.jpg'},
-  {name:'Granite Hill', image: 'https://farm9.staticflickr.com/8311/7930038740_d86bd62a7e.jpg'},
-  {name: 'Mountain Goats Rest', image: 'http://www.photosforclass.com/download/7360193870'},
-  {name: 'Salmon Creek', image: 'https://farm9.staticflickr.com/8422/7842069486_c61e4c6025.jpg'},
-  {name:'Granite Hill', image: 'https://farm9.staticflickr.com/8311/7930038740_d86bd62a7e.jpg'},
-  {name: 'Mountain Goats Rest', image: 'http://www.photosforclass.com/download/7360193870'},
-  {name: 'Salmon Creek', image: 'https://farm9.staticflickr.com/8422/7842069486_c61e4c6025.jpg'},
-  {name:'Granite Hill', image: 'https://farm9.staticflickr.com/8311/7930038740_d86bd62a7e.jpg'},
-  {name: 'Mountain Goats Rest', image: 'http://www.photosforclass.com/download/7360193870'}
-];
 
+//-------------------------------------------------------//
+// ROUTES SECTION
+//-------------------------------------------------------//
+
+//--INDEX------------------------------------------------//
 app.get('/', function(req,res){
   res.render('landing');
 });
 
+//--INDEX------------------------------------------------//
 app.get('/campgrounds', function(req,res){
-  res.render('campgrounds', {campgrounds: cgrounds});
+  CampMod.find(function(err,campgrounds) {
+        if(err) throw err;
+        res.render('campgrounds', {campgrounds: campgrounds});
+      });
 });
 
-app.post('/campgrounds', function(req,res){
-  var name = req.body.name;
-  var image = req.body.image;
-  var newCampground = {name: name, image: image};
-  cgrounds.push(newCampground);
-  res.redirect('/campgrounds');
-});
-
+//--NEW------------------------------------------------//
 app.get('/campgrounds/new', function(req,res){
   res.render('new');
 })
 
+//--CREATE------------------------------------------------//
+app.post('/campgrounds', function(req,res){
+  var name = req.body.name;
+  var image = req.body.image;
+  var newCampground = {name: name, image: image};
+  CampMod.create(newCampground, (function(err, camp){
+    if(err){
+      throw(err)
+    } else {console.log("We saved the new camp");}
+  }));
+  res.redirect('/campgrounds');
+});
+
+//--DELETE------------------------------------------------//
+app.delete('/campgrounds',function(req,res){
+  var id = req.body.id;
+  var deleteCamp = CampMod({id:id});
+  deleteCamp.delete(function(err,camp){
+    if(err){
+      throw(err)
+    } else {
+      console.log("Camp Deleted");
+      console.log(camp);
+    }
+  });
+  res.redirect('/campgrounds');
+});
+
+//--DELETE------------------------------------------------//
+app.get('/campgrounds/:id',function(req,res){
+  var id = req.params.id;
+  var getCamp = CampMod({id:id})
+  res.send("This will be the detial page")
+});
+
+//--CATCH------------------------------------------------//
 app.get('*',function(req,res){
   res.send("Opps this page does not exist?");
 })
+
+
+//-------------------------------------------------------//
+// PORT SECTION
+//-------------------------------------------------------//
 
 app.listen(3000, function(){
   console.log("YelpCamp server is listening on Port 3000")
