@@ -5,7 +5,7 @@ var Schema = mongoose.Schema;
 var campSchema = new Schema({
   name : String,
   image: String,
-  description: String,
+  description: String
 });
 
 var CampMod = mongoose.model('newCamp', campSchema);

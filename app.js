@@ -48,7 +48,8 @@ app.get('/campgrounds/new', function(req,res){
 app.post('/campgrounds', function(req,res){
   var name = req.body.name;
   var image = req.body.image;
-  var newCampground = {name: name, image: image};
+  var desc = req.body.description;
+  var newCampground = {name: name, image: image, description: desc};
   CampMod.create(newCampground, (function(err, camp){
     if(err){
       throw(err)
@@ -72,18 +73,22 @@ app.delete('/campgrounds',function(req,res){
   res.redirect('/campgrounds');
 });
 
-//--DELETE------------------------------------------------//
+//--STUFF------------------------------------------------//
 app.get('/campgrounds/:id',function(req,res){
-  var id = req.params.id;
-  var getCamp = CampMod({id:id})
-  res.send("This will be the detial page")
+  CampMod.findById(req.params.id, function(err,foundCampground){
+    if(err){
+      throw(err)
+    } else {
+      // console.log(foundCampground.name);
+      res.render('show',{campground: foundCampground})
+    }
+  });
 });
 
 //--CATCH------------------------------------------------//
 app.get('*',function(req,res){
   res.send("Opps this page does not exist?");
 })
-
 
 //-------------------------------------------------------//
 // PORT SECTION
