@@ -73,7 +73,7 @@ app.delete('/campgrounds',function(req,res){
   res.redirect('/campgrounds');
 });
 
-//--STUFF------------------------------------------------//
+//--SHOW------------------------------------------------//
 app.get('/campgrounds/:id',function(req,res){
   CampMod.findById(req.params.id, function(err,foundCampground){
     if(err){
