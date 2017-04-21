@@ -84,8 +84,8 @@ app.get("/campgrounds/:id",function(req,res){
     if(err){
       throw(err)
     } else {
-      console.log(foundCampground);
-      res.render("show",{campground: foundCampground})
+      // console.log(foundCampground.name);
+      res.render("show",{campground: foundCampground});
     }
   });
 });
