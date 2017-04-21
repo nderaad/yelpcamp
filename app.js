@@ -1,67 +1,72 @@
-var express        = require('express');
+//-------------------------------------------------------//
+// DEPENDENCIES SECTION
+//-------------------------------------------------------//
+
+var express        = require("express");
 var app            = express();
-var bodyParser     = require('body-parser');
-var mongoose       = require('mongoose');
-//--using bluebird promises installed instead of native ES6 for 4X speed
-mongoose.Promise   = require('bluebird');
-//--establishing connection with config Folder that
-//--has credentials and location of MongoD
-var config         = require('./config');
-var CampMod        = require('./models/new_camp');
+var bodyParser     = require("body-parser");
+var mongoose       = require("mongoose");
+mongoose.Promise   = require("bluebird");//--using bluebird promises installed instead of native ES6 for 4X speed
+var config         = require("./config");//--establishing connection with config Folder that has credentials and location of MongoDB
+var Campground     = require("./models/campground");
+var seedDB         = require("./seeds");
 
-
+seedDB();
 //-------------------------------------------------------//
 // USE SECTION
 //-------------------------------------------------------//
 
 app.use(bodyParser.urlencoded({extended: true}));//allows app to parse body of http requests (e.g. GET, POST, etc.)
-app.use(express.static('public')); //tells express to serve up public folder for accessing static files
-app.set('view engine', 'ejs');//sets template engine to ejs enabling ejs
+app.use(express.static("public")); //tells express to serve up public folder for accessing static files
+app.set("view engine", "ejs");//sets template engine to ejs enabling ejs
+
+//-------------------------------------------------------//
+// MONGODB SECTION
+//-------------------------------------------------------//
 
 //--establish connection with MondgoDB using config requirement above
 mongoose.connect(config.getDbConnectionString());
-
 
 //-------------------------------------------------------//
 // ROUTES SECTION
 //-------------------------------------------------------//
 
 //--INDEX------------------------------------------------//
-app.get('/', function(req,res){
-  res.render('landing');
+app.get("/", function(req,res){
+  res.render("landing");
 });
 
 //--INDEX------------------------------------------------//
-app.get('/campgrounds', function(req,res){
-  CampMod.find(function(err,campgrounds) {
+app.get("/campgrounds", function(req,res){
+  Campground.find(function(err,campgrounds) {
         if(err) throw err;
-        res.render('campgrounds', {campgrounds: campgrounds});
+        res.render("campgrounds", {campgrounds: campgrounds});
       });
 });
 
 //--NEW------------------------------------------------//
-app.get('/campgrounds/new', function(req,res){
-  res.render('new');
+app.get("/campgrounds/new", function(req,res){
+  res.render("new");
 })
 
 //--CREATE------------------------------------------------//
-app.post('/campgrounds', function(req,res){
+app.post("/campgrounds", function(req,res){
   var name = req.body.name;
   var image = req.body.image;
   var desc = req.body.description;
   var newCampground = {name: name, image: image, description: desc};
-  CampMod.create(newCampground, (function(err, camp){
+  Campground.create(newCampground, (function(err, camp){
     if(err){
       throw(err)
     } else {console.log("We saved the new camp");}
   }));
-  res.redirect('/campgrounds');
+  res.redirect("/campgrounds");
 });
 
 //--DELETE------------------------------------------------//
-app.delete('/campgrounds',function(req,res){
+app.delete("/campgrounds",function(req,res){
   var id = req.body.id;
-  var deleteCamp = CampMod({id:id});
+  var deleteCamp = Campground({id:id});
   deleteCamp.delete(function(err,camp){
     if(err){
       throw(err)
@@ -70,25 +75,25 @@ app.delete('/campgrounds',function(req,res){
       console.log(camp);
     }
   });
-  res.redirect('/campgrounds');
+  res.redirect("/campgrounds");
 });
 
 //--SHOW------------------------------------------------//
-app.get('/campgrounds/:id',function(req,res){
-  CampMod.findById(req.params.id, function(err,foundCampground){
+app.get("/campgrounds/:id",function(req,res){
+  Campground.findById(req.params.id).populate("comments").exec(function(err,foundCampground){
     if(err){
       throw(err)
     } else {
-      // console.log(foundCampground.name);
-      res.render('show',{campground: foundCampground})
+      console.log(foundCampground);
+      res.render("show",{campground: foundCampground})
     }
   });
 });
 
 //--CATCH------------------------------------------------//
-app.get('*',function(req,res){
-  res.send("Opps this page does not exist?");
-})
+app.get("*",function(req,res){
+  res.send("Opps this page does not exist");
+});
 
 //-------------------------------------------------------//
 // PORT SECTION
