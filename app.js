@@ -18,7 +18,7 @@ var seedDB         = require("./seeds");
 //-------------------------------------------------------//
 
 app.use(bodyParser.urlencoded({extended: true}));//allows app to parse body of http requests (e.g. GET, POST, etc.)
-app.use(express.static("public")); //tells express to serve up public folder for accessing static files
+app.use(express.static(__dirname + "/public")); //tells express to serve up public folder for accessing static files
 app.set("view engine", "ejs");//sets template engine to ejs enabling ejs
 
 //-------------------------------------------------------//
