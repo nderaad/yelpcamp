@@ -1,35 +1,63 @@
 //-------------------------------------------------------//
-// DEPENDENCIES SECTION
+// DEPENDENCIES
 //-------------------------------------------------------//
 
-var express        = require("express");
-var app            = express();
-var bodyParser     = require("body-parser");
-var mongoose       = require("mongoose");
-mongoose.Promise   = require("bluebird");//--using bluebird promises installed instead of native ES6 for 4X speed
-var config         = require("./config");//--establishing connection with config Folder that has credentials and location of MongoDB
-var Campground     = require("./models/campground");
-var Comment       = require("./models/comment");
-var seedDB         = require("./seeds");
+var express                 = require("express");
+var app                     = express();
+var bodyParser              = require("body-parser");
+var mongoose                = require("mongoose");
+mongoose.Promise            = require("bluebird");//--using bluebird promises installed instead of native ES6 for 4X speed
+var config                  = require("./config");//--establishing connection with config Folder that has credentials and location of MongoDB
+var Campground              = require("./models/campground");
+var Comment                 = require("./models/comment");
+var seedDB                  = require("./seeds");
+var passport                = require("passport");
+var LocalStrategy           = require("passport-local");
+var passportLocalMongoose   = require("passport-local-mongoose");
+var expressSession          = require("express-session");
+var User                    = require("./models/user");
 
 // seedDB();
 //-------------------------------------------------------//
-// USE SECTION
+// USE
 //-------------------------------------------------------//
 
 app.use(bodyParser.urlencoded({extended: true}));//allows app to parse body of http requests (e.g. GET, POST, etc.)
 app.use(express.static(__dirname + "/public")); //tells express to serve up public folder for accessing static files
 app.set("view engine", "ejs");//sets template engine to ejs enabling ejs
 
+//--PASSPORT CONFIG--------------------------------------//
+app.use(require("express-session")({
+  secret: "famjam",
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 //-------------------------------------------------------//
-// MONGODB SECTION
+// MIDDLEWARE
+//-------------------------------------------------------//
+
+function isLoggedIn(req, res, next){
+    if(req.isAuthenticated()){
+      return next();
+    }
+    res.redirect("/login");
+};
+
+//-------------------------------------------------------//
+// MONGODB CONNECTION
 //-------------------------------------------------------//
 
 //--establish connection with MondgoDB using config requirement above
 mongoose.connect(config.getDbConnectionString());
 
 //-------------------------------------------------------//
-// ROUTES SECTION
+// ROUTES
 //-------------------------------------------------------//
 
 //--INDEX------------------------------------------------//
@@ -92,10 +120,10 @@ app.get("/campgrounds/:id",function(req,res){
 });
 
 //-------------------------------------------------------//
-// COMMENT ROUTES SECTION
+// COMMENT ROUTES
 //-------------------------------------------------------//
 
-//--NEW------------------------------------------------//
+//--NEW--------------------------------------------------//
 app.get("/campgrounds/:id/comments/new", function(req,res){
   Campground.findById(req.params.id, function(err,campground){
     if(err){
@@ -122,13 +150,53 @@ app.post("/campgrounds/:id/comments", function(req,res){
   });
 });
 
+//-------------------------------------------------------//
+// AUTHENTICATION ROUTES
+//-------------------------------------------------------//
+
+//--SHOW REGISTER----------------------------------------//
+app.get("/register", function(req,res){
+  res.render("register");
+});
+
+//--NEW REGISTER----------------------------------------//
+app.post("/register", function(req,res){
+  User.register(new User({username: req.body.username}), req.body.password, function(err, user){
+    if(err){
+      console.log(err);
+      return res.render("register");
+    }
+    passport.authenticate("local")(req, res, function(){
+      res.redirect("/campgrounds");
+    });
+  });
+});
+
+//--SHOW LOGIN-------------------------------------------//
+app.get("/login", function(req,res){
+  res.render("login");
+});
+
+//--LOGIN-------------------------------------------//
+app.post("/login", passport.authenticate("local", {
+  successRedirect: "/campgrounds",
+  failureRedirect: "/login"
+}), function(req, res){
+});
+
+//--LOGOUT-------------------------------------------//
+app.get("/logout", function(req, res){
+  req.logout();
+  res.redirect("/login");
+});
+
 //--CATCH------------------------------------------------//
 app.get("*",function(req,res){
   res.send("Opps this page does not exist");
 });
 
 //-------------------------------------------------------//
-// PORT SECTION
+// PORT LISTENER
 //-------------------------------------------------------//
 
 app.listen(3000, function(){
