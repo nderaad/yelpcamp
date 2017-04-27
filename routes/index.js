@@ -10,33 +10,23 @@ var passportLocalMongoose   = require("passport-local-mongoose");
 var expressSession          = require("express-session");
 var User                    = require("../models/user")
 var Campground              = require("../models/campground");
+var middleware              = require("../middleware");
 
 //--USE------------------------------------------------//
 //this is middleware that will run on all routes below providing access to the information about the User (if any) to the route and then running next()
 router.use(function(req, res, next){
   res.locals.currentUser = req.user;
   next();
-})
+});
 
 //-------------------------------------------------------//
-// MIDDLEWARE
+// ROUTES
 //-------------------------------------------------------//
-
-function isLoggedIn(req, res, next){
-    if(req.isAuthenticated()){
-      return next();
-    }
-    res.redirect("/login");
-};
 
 //--INDEX------------------------------------------------//
 router.get("/", function(req,res){
   res.render("landing");
 });
-
-//-------------------------------------------------------//
-// AUTHENTICATION ROUTES
-//-------------------------------------------------------//
 
 //--SHOW REGISTER----------------------------------------//
 router.get("/register", function(req,res){
@@ -73,7 +63,6 @@ router.get("/logout", function(req, res){
   req.logout();
   res.redirect("/login");
 });
-
 
 
 
