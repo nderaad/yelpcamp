@@ -1,11 +1,17 @@
-.thumbnail img {
+#show {
   width: 100%;
 }
 
 .thumbnail {
   padding: 0;
+  /*min-height: 350px;*/
 }
 
 .thumbnail .caption-full {
   padding: 9px;
+}
+
+.thumbnail img {
+  /*min-height: 160px;*/
+
 }
