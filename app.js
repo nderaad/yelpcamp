@@ -16,6 +16,7 @@ var LocalStrategy           = require("passport-local");
 var passportLocalMongoose   = require("passport-local-mongoose");
 var expressSession          = require("express-session");
 var User                    = require("./models/user");
+var methodOverride          = require("method-override");
 
 //--ROUTE DEPENDENCIES-----------------------------------//
 var commentRoutes           = require("./routes/comments");
@@ -30,6 +31,7 @@ var indexRoutes             = require("./routes/index");
 app.use(bodyParser.urlencoded({extended: true}));//allows app to parse body of http requests (e.g. GET, POST, etc.)
 app.use(express.static(__dirname + "/public")); //tells express to serve up public folder for accessing static files
 app.set("view engine", "ejs");//sets template engine to ejs enabling ejs
+app.use(methodOverride("_method"));
 //this is middleware that will run on all routes below providing access to the information about the User (if any) to the route and then running next()
 app.use(function(req, res, next){
   res.locals.currentUser = req.user;

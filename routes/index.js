@@ -11,6 +11,13 @@ var expressSession          = require("express-session");
 var User                    = require("../models/user")
 var Campground              = require("../models/campground");
 
+//--USE------------------------------------------------//
+//this is middleware that will run on all routes below providing access to the information about the User (if any) to the route and then running next()
+router.use(function(req, res, next){
+  res.locals.currentUser = req.user;
+  next();
+})
+
 //-------------------------------------------------------//
 // MIDDLEWARE
 //-------------------------------------------------------//

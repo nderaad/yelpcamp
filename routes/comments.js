@@ -7,6 +7,13 @@ var router                  = express.Router({mergeParams: true}); //mergeparams
 var Campground              = require("../models/campground");
 var Comment                 = require("../models/comment");
 
+//--USE------------------------------------------------//
+//this is middleware that will run on all routes below providing access to the information about the User (if any) to the route and then running next()
+router.use(function(req, res, next){
+  res.locals.currentUser = req.user;
+  next();
+})
+
 //-------------------------------------------------------//
 // MIDDLEWARE
 //-------------------------------------------------------//
