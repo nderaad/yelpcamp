@@ -17,6 +17,7 @@ var passportLocalMongoose   = require("passport-local-mongoose");
 var expressSession          = require("express-session");
 var User                    = require("./models/user");
 var methodOverride          = require("method-override");
+var flash                   = require("connect-flash");
 
 //--ROUTE DEPENDENCIES-----------------------------------//
 var commentRoutes           = require("./routes/comments");
@@ -32,23 +33,26 @@ app.use(bodyParser.urlencoded({extended: true}));//allows app to parse body of h
 app.use(express.static(__dirname + "/public")); //tells express to serve up public folder for accessing static files
 app.set("view engine", "ejs");//sets template engine to ejs enabling ejs
 app.use(methodOverride("_method"));
-//this is middleware that will run on all routes below providing access to the information about the User (if any) to the route and then running next()
-app.use(function(req, res, next){
-  res.locals.currentUser = req.user;
-  next();
-})
 //--PASSPORT CONFIG--------------------------------------//
 app.use(require("express-session")({
   secret: "famjam",
   resave: false,
   saveUninitialized: false
 }));
+app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+//this is middleware that will run on all routes below providing access to the information about the User (if any) to the route and then running next()
+app.use(function(req, res, next){
+  res.locals.currentUser = req.user;
+  res.locals.error = req.flash("error");
+  res.locals.success = req.flash("success");
+  next();
+})
 
 //-------------------------------------------------------//
 // MONGODB CONNECTION
